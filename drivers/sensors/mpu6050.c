@@ -165,38 +165,36 @@ static int mpu6050_read_data(FAR struct mpu6050_dev_s *priv) {
  * Name: mpu6050_open
  */
 
-// static int mpu6050_open(FAR struct file *filep) { return OK; }
+static int mpu6050_open(FAR struct file *filep) { return OK; }
 
 /**
  * Name: mpu6050_close
  */
 
-// static int mpu6050_close(FAR struct file *filep) { return OK; }
+static int mpu6050_close(FAR struct file *filep) { return OK; }
 
 /**
  * Name: mpu6050_read
  */
 
-/*
 static ssize_t mpu6050_read(FAR struct file *filep, FAR char *buffer,
-                           size_t buflen) {
- FAR struct inode *inode = filep->f_inode;
- FAR struct mpu6050_dev_s *priv = inode->i_private;
- int ret;
+                            size_t buflen) {
+  FAR struct inode *inode = filep->f_inode;
+  FAR struct mpu6050_dev_s *priv = inode->i_private;
+  int ret;
 
- if (buflen < sizeof(struct mpu6050_data_s)) {
-   return -EINVAL;
- }
+  if (buflen < sizeof(struct mpu6050_data_s)) {
+    return -EINVAL;
+  }
 
- ret = mpu6050_read_data(priv);
- if (ret < 0) {
-   return ret;
- }
+  ret = mpu6050_read_data(priv);
+  if (ret < 0) {
+    return ret;
+  }
 
- memcpy(buffer, &priv->data, sizeof(struct mpu6050_data_s));
- return sizeof(struct mpu6050_data_s);
+  memcpy(buffer, &priv->data, sizeof(struct mpu6050_data_s));
+  return sizeof(struct mpu6050_data_s);
 }
- */
 
 /**
  * Name: mpu6050_ioctl
