@@ -208,49 +208,49 @@ static int mpu6050_ioctl(FAR struct file *filep, int cmd, unsigned long arg) {
  * Name: mpu6050_register
  */
 
-// int mpu6050_register(FAR const char *devpath, FAR struct i2c_master_s *i2c,
-//                      uint8_t addr) {
-//   FAR struct mpu6050_dev_s *priv;
-//   uint8_t whoami;
-//   int ret;
+int mpu6050_register(FAR const char *devpath, FAR struct i2c_master_s *i2c,
+                     uint8_t addr) {
+  FAR struct mpu6050_dev_s *priv;
+  uint8_t whoami;
+  int ret;
 
-//   DEBUGASSERT(devpath != NULL && i2c != NULL);
+  DEBUGASSERT(devpath != NULL && i2c != NULL);
 
-//   priv = (FAR struct mpu6050_dev_s *)kmm_malloc(sizeof(struct
-//   mpu6050_dev_s)); if (priv == NULL) {
-//     return -ENOMEM;
-//   }
+  priv = (FAR struct mpu6050_dev_s *)kmm_malloc(sizeof(struct mpu6050_dev_s));
+  if (priv == NULL) {
+    return -ENOMEM;
+  }
 
-//   memset(priv, 0, sizeof(struct mpu6050_dev_s));
-//   priv->i2c = i2c;
-//   priv->addr = addr;
+  memset(priv, 0, sizeof(struct mpu6050_dev_s));
+  priv->i2c = i2c;
+  priv->addr = addr;
 
-//   /* Verify MPU6050 is present */
-//   ret = mpu6050_read_reg(priv, MPU6050_WHO_AM_I, &whoami);
-//   if (ret < 0 || whoami != 0x68) {
-//     syslog(LOG_ERR, "MPU6050: WHO_AM_I = 0x%02x (expected 0x68)\n", whoami);
-//     kmm_free(priv);
-//     return -ENODEV;
-//   }
+  /* Verify MPU6050 is present */
+  ret = mpu6050_read_reg(priv, MPU6050_WHO_AM_I, &whoami);
+  if (ret < 0 || whoami != 0x68) {
+    syslog(LOG_ERR, "MPU6050: WHO_AM_I = 0x%02x (expected 0x68)\n", whoami);
+    kmm_free(priv);
+    return -ENODEV;
+  }
 
-//   syslog(LOG_INFO, "MPU6050: Found at 0x%02x\n", addr);
+  syslog(LOG_INFO, "MPU6050: Found at 0x%02x\n", addr);
 
-//   /* Initialize MPU6050 */
-//   mpu6050_write_reg(priv, MPU6050_PWR_MGMT_1, 0x00);   /* Wake up */
-//   mpu6050_write_reg(priv, MPU6050_SMPLRT_DIV, 9);      /* 100 Hz */
-//   mpu6050_write_reg(priv, MPU6050_ACCEL_CONFIG, 0x00); /* ±2g */
-//   mpu6050_write_reg(priv, MPU6050_GYRO_CONFIG, 0x00);  /* ±250°/s */
+  /* Initialize MPU6050 */
+  mpu6050_write_reg(priv, MPU6050_PWR_MGMT_1, 0x00);   /* Wake up */
+  mpu6050_write_reg(priv, MPU6050_SMPLRT_DIV, 9);      /* 100 Hz */
+  mpu6050_write_reg(priv, MPU6050_ACCEL_CONFIG, 0x00); /* ±2g */
+  mpu6050_write_reg(priv, MPU6050_GYRO_CONFIG, 0x00);  /* ±250°/s */
 
-//   /* Register character device */
-//   ret = register_driver(devpath, &g_mpu6050_fops, 0666, priv);
-//   if (ret < 0) {
-//     syslog(LOG_ERR, "MPU6050: Failed to register: %d\n", ret);
-//     kmm_free(priv);
-//     return ret;
-//   }
+  /* Register character device */
+  ret = register_driver(devpath, &g_mpu6050_fops, 0666, priv);
+  if (ret < 0) {
+    syslog(LOG_ERR, "MPU6050: Failed to register: %d\n", ret);
+    kmm_free(priv);
+    return ret;
+  }
 
-//   syslog(LOG_INFO, "MPU6050: Driver registered at %s\n", devpath);
-//   return OK;
-// }
+  syslog(LOG_INFO, "MPU6050: Driver registered at %s\n", devpath);
+  return OK;
+}
 
 #endif /* CONFIG_SENSORS_MPU6050 */
