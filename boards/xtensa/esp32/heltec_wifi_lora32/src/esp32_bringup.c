@@ -94,6 +94,16 @@ int esp32_bringup(void)
     }
 #endif /* CONFIG_LPWAN_SX127X */
 
+#ifdef CONFIG_SENSORS_MPU6050
+  ret = esp32_mpu6050_initialize();
+  if (ret < 0)
+    {
+      syslog(LOG_ERR,
+             "ERROR: Failed to initialize MPU6050 driver: %d\n",
+             ret);
+    }
+#endif /* CONFIG_SENSORS_MPU6050 */
+
 #ifdef CONFIG_ESPRESSIF_HR_TIMER
   ret = esp_hr_timer_init();
   if (ret < 0)
