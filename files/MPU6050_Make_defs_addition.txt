@@ -1,0 +1,21 @@
+================================================================================
+FILE: drivers/sensors/Make.defs
+INSTRUCTION: Add mpu6050.c to CSRCS (in alphabetical order)
+================================================================================
+
+BEFORE:
+──────
+CSRCS += ds18b20.c
+CSRCS += hdc1008.c
+CSRCS += lps25h.c
+CSRCS += mpl115a.c
+
+AFTER (with MPU6050 added):
+───────
+CSRCS += ds18b20.c
+CSRCS += hdc1008.c
+CSRCS += lps25h.c
+CSRCS += mpl115a.c
+CSRCS += mpu6050.c    ← ADD THIS LINE
+
+================================================================================

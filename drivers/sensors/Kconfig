@@ -1476,7 +1476,7 @@ config MPU60X0_EXTI
 	bool "Enable interrupts"
 	default n
 	---help---
-		Select this when the MPU60x0's INT pin is connected to an
+		Select this when the MPU60x0s INT pin is connected to an
 		interrupt line on the host processor, and identify the pin
 		during device registration. The driver will use interrupts to
 		manage FIFO-full and/or sample-ready events, depending on how
@@ -1491,7 +1491,7 @@ config MPU60X0_EXT_SYNC_SET
 	---help---
 		EXT_SYNC_SET[2..0]
 		EXT_SYNC_SET: frame sync bit position
-		(see datasheet, it's ... complicated)
+		(see datasheet, its ... complicated)
 
 config MPU60X0_DLPF_CFG
 	int "MPU60x0 digital low-pass filter bandwidth"
@@ -1499,7 +1499,7 @@ config MPU60X0_DLPF_CFG
 	---help---
 		DLPF_CFG[2..0]
 		DLPF_CFG: digital low-pass filter bandwidth
-		(see datasheet, it's ... complicated)
+		(see datasheet, its ... complicated)
 
 config MPU60X0_GYRO_FS_SEL
 	int "MPU60x0 Gyro FS_SEL"
