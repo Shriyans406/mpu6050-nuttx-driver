@@ -132,5 +132,9 @@ int esp32_bringup(void);
 int esp32_lpwaninitialize(void);
 #endif
 
+#ifdef CONFIG_SENSORS_MPU6050
+int esp32_mpu6050_initialize(void);
+#endif
+
 #endif /* __ASSEMBLY__ */
 #endif /* __BOARDS_XTENSA_ESP32_HELTEC_WIFI_LORA32_SRC_HELTEC_WIFI_LORA32_H */
