@@ -40,43 +40,6 @@
 #define MPU6050_ADDR_LOW   0x68
 #define MPU6050_ADDR_HIGH  0x69
 
-/* Register addresses */
-
-#define MPU6050_SMPLRT_DIV      0x19
-#define MPU6050_CONFIG          0x1a
-#define MPU6050_GYRO_CONFIG     0x1b
-#define MPU6050_ACCEL_CONFIG    0x1c
-#define MPU6050_INT_ENABLE      0x38
-#define MPU6050_INT_STATUS      0x3a
-#define MPU6050_ACCEL_XOUT_H    0x3b
-#define MPU6050_ACCEL_XOUT_L    0x3c
-#define MPU6050_ACCEL_YOUT_H    0x3d
-#define MPU6050_ACCEL_YOUT_L    0x3e
-#define MPU6050_ACCEL_ZOUT_H    0x3f
-#define MPU6050_ACCEL_ZOUT_L    0x40
-#define MPU6050_TEMP_OUT_H      0x41
-#define MPU6050_TEMP_OUT_L      0x42
-#define MPU6050_GYRO_XOUT_H     0x43
-#define MPU6050_GYRO_XOUT_L     0x44
-#define MPU6050_GYRO_YOUT_H     0x45
-#define MPU6050_GYRO_YOUT_L     0x46
-#define MPU6050_GYRO_ZOUT_H     0x47
-#define MPU6050_GYRO_ZOUT_L     0x48
-#define MPU6050_PWR_MGMT_1      0x6b
-#define MPU6050_WHO_AM_I        0x75
-
-/* Full Scale Range Options */
-
-#define MPU6050_ACCEL_FS_2G     0
-#define MPU6050_ACCEL_FS_4G     1
-#define MPU6050_ACCEL_FS_8G     2
-#define MPU6050_ACCEL_FS_16G    3
-
-#define MPU6050_GYRO_FS_250DPS  0
-#define MPU6050_GYRO_FS_500DPS  1
-#define MPU6050_GYRO_FS_1000DPS 2
-#define MPU6050_GYRO_FS_2000DPS 3
-
 /****************************************************************************
  * Public Types
  ****************************************************************************/

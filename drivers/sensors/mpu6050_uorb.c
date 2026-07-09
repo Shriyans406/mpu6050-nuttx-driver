@@ -46,19 +46,49 @@
  * Pre-processor Definitions
  ****************************************************************************/
 
-#define MPU6050_I2C_FREQUENCY 400000 /* 400 kHz */
-#define CONSTANTS_ONE_G       9.80665f
+/* Register addresses */
+
+#define MPU6050_SMPLRT_DIV      0x19
+#define MPU6050_CONFIG          0x1a
+#define MPU6050_GYRO_CONFIG     0x1b
+#define MPU6050_ACCEL_CONFIG    0x1c
+#define MPU6050_INT_ENABLE      0x38
+#define MPU6050_INT_STATUS      0x3a
+#define MPU6050_ACCEL_XOUT_H    0x3b
+#define MPU6050_ACCEL_XOUT_L    0x3c
+#define MPU6050_ACCEL_YOUT_H    0x3d
+#define MPU6050_ACCEL_YOUT_L    0x3e
+#define MPU6050_ACCEL_ZOUT_H    0x3f
+#define MPU6050_ACCEL_ZOUT_L    0x40
+#define MPU6050_TEMP_OUT_H      0x41
+#define MPU6050_TEMP_OUT_L      0x42
+#define MPU6050_GYRO_XOUT_H     0x43
+#define MPU6050_GYRO_XOUT_L     0x44
+#define MPU6050_GYRO_YOUT_H     0x45
+#define MPU6050_GYRO_YOUT_L     0x46
+#define MPU6050_GYRO_ZOUT_H     0x47
+#define MPU6050_GYRO_ZOUT_L     0x48
+#define MPU6050_PWR_MGMT_1      0x6b
+#define MPU6050_WHO_AM_I        0x75
+
+/* Full Scale Range Options */
+
+#define MPU6050_ACCEL_FS_2G     0
+#define MPU6050_ACCEL_FS_4G     1
+#define MPU6050_ACCEL_FS_8G     2
+#define MPU6050_ACCEL_FS_16G    3
+
+#define MPU6050_GYRO_FS_250DPS  0
+#define MPU6050_GYRO_FS_500DPS  1
+#define MPU6050_GYRO_FS_1000DPS 2
+#define MPU6050_GYRO_FS_2000DPS 3
+
+#define MPU6050_I2C_FREQUENCY   400000 /* 400 kHz */
+#define CONSTANTS_ONE_G         9.80665f
 
 /****************************************************************************
  * Private Types
  ****************************************************************************/
-
-enum mpu6050_idx_e
-{
-  MPU6050_ACCEL_IDX = 0,
-  MPU6050_GYRO_IDX,
-  MPU6050_MAX_IDX
-};
 
 struct mpu6050_dev_s
 {
@@ -79,7 +109,8 @@ struct mpu6050_sensor_s
 struct mpu6050_uorb_dev_s
 {
   struct mpu6050_dev_s base;
-  struct mpu6050_sensor_s priv[MPU6050_MAX_IDX];
+  struct mpu6050_sensor_s accel;
+  struct mpu6050_sensor_s gyro;
 };
 
 /****************************************************************************
@@ -231,13 +262,10 @@ static int mpu6050_fetch(FAR struct sensor_lowerhalf_s *lower,
                          FAR char *buffer, size_t buflen)
 {
   FAR struct mpu6050_sensor_s *priv = (FAR struct mpu6050_sensor_s *)lower;
-  FAR struct mpu6050_uorb_dev_s *uorb_dev =
-    (FAR struct mpu6050_uorb_dev_s *)priv->dev;
   FAR struct mpu6050_dev_s *dev = priv->dev;
   uint8_t buf[14];
   float temp_c;
   int ret;
-  int idx = priv - &uorb_dev->priv[0];
 
   if (buffer == NULL)
     {
@@ -260,7 +288,7 @@ static int mpu6050_fetch(FAR struct sensor_lowerhalf_s *lower,
 
   temp_c = ((float)(int16_t)((buf[6] << 8) | buf[7]) / 340.0f) + 36.53f;
 
-  if (idx == MPU6050_ACCEL_IDX)
+  if (lower->type == SENSOR_TYPE_ACCELEROMETER)
     {
       struct sensor_accel accel;
 
@@ -281,7 +309,7 @@ static int mpu6050_fetch(FAR struct sensor_lowerhalf_s *lower,
       memcpy(buffer, &accel, sizeof(struct sensor_accel));
       return sizeof(struct sensor_accel);
     }
-  else if (idx == MPU6050_GYRO_IDX)
+  else if (lower->type == SENSOR_TYPE_GYROSCOPE)
     {
       struct sensor_gyro gyro;
 
@@ -315,10 +343,7 @@ static int mpu6050_control(FAR struct sensor_lowerhalf_s *lower,
                            int cmd, unsigned long arg)
 {
   FAR struct mpu6050_sensor_s *priv = (FAR struct mpu6050_sensor_s *)lower;
-  FAR struct mpu6050_uorb_dev_s *uorb_dev =
-    (FAR struct mpu6050_uorb_dev_s *)priv->dev;
   FAR struct mpu6050_dev_s *dev = priv->dev;
-  int idx = priv - &uorb_dev->priv[0];
   int ret;
 
   ret = nxmutex_lock(&dev->dev_lock);
@@ -331,7 +356,7 @@ static int mpu6050_control(FAR struct sensor_lowerhalf_s *lower,
     {
       case SNIOC_SET_SCALE_XL:
         {
-          if (idx == MPU6050_ACCEL_IDX)
+          if (lower->type == SENSOR_TYPE_ACCELEROMETER)
             {
               uint8_t fs = (uint8_t)arg;
               ret = mpu6050_write_reg(dev, MPU6050_ACCEL_CONFIG, fs << 3);
@@ -356,7 +381,7 @@ static int mpu6050_control(FAR struct sensor_lowerhalf_s *lower,
                     }
                 }
             }
-          else if (idx == MPU6050_GYRO_IDX)
+          else if (lower->type == SENSOR_TYPE_GYROSCOPE)
             {
               uint8_t fs = (uint8_t)arg;
               ret = mpu6050_write_reg(dev, MPU6050_GYRO_CONFIG, fs << 3);
@@ -408,9 +433,10 @@ static int mpu6050_control(FAR struct sensor_lowerhalf_s *lower,
 int mpu6050_register(int devno, FAR struct i2c_master_s *i2c, uint8_t addr)
 {
   FAR struct mpu6050_uorb_dev_s *dev;
+  FAR struct mpu6050_sensor_s *sensor;
+  FAR struct sensor_lowerhalf_s *lower;
   uint8_t whoami;
   int ret;
-  int i;
 
   DEBUGASSERT(i2c != NULL);
 
@@ -448,42 +474,55 @@ int mpu6050_register(int devno, FAR struct i2c_master_s *i2c, uint8_t addr)
   mpu6050_write_reg(&dev->base, MPU6050_ACCEL_CONFIG, 0x00); /* ±2g */
   mpu6050_write_reg(&dev->base, MPU6050_GYRO_CONFIG, 0x00);  /* ±250°/s */
 
-  for (i = 0; i < MPU6050_MAX_IDX; i++)
+  /* Register Accelerometer */
+
+  sensor          = &dev->accel;
+  lower           = &sensor->lower;
+
+  sensor->dev     = &dev->base;
+  sensor->enabled = false;
+  sensor->scale   = CONSTANTS_ONE_G / 16384.0f;
+  lower->type     = SENSOR_TYPE_ACCELEROMETER;
+  lower->nbuffer  = 1;
+  lower->ops      = &g_mpu6050_ops;
+
+  ret = sensor_register(lower, devno);
+  if (ret < 0)
     {
-      FAR struct mpu6050_sensor_s *sensor = &dev->priv[i];
-      FAR struct sensor_lowerhalf_s *lower = &sensor->lower;
+      syslog(LOG_ERR, "MPU6050: Failed to register accel: %d\n", ret);
+      goto errout;
+    }
 
-      sensor->dev     = &dev->base;
-      sensor->enabled = false;
+  /* Register Gyroscope */
 
-      lower->type = (i == MPU6050_ACCEL_IDX) ? SENSOR_TYPE_ACCELEROMETER :
-                                               SENSOR_TYPE_GYROSCOPE;
-      lower->nbuffer = 1;
-      lower->ops     = &g_mpu6050_ops;
+  sensor          = &dev->gyro;
+  lower           = &sensor->lower;
+  sensor->dev     = &dev->base;
+  sensor->enabled = false;
+  sensor->scale   = (M_PI / 180.0f) / 131.0f;
+  lower->type     = SENSOR_TYPE_GYROSCOPE;
+  lower->nbuffer  = 1;
+  lower->ops      = &g_mpu6050_ops;
 
-      sensor->scale = (i == MPU6050_ACCEL_IDX) ?
-                      (CONSTANTS_ONE_G / 16384.0f) :
-                      ((M_PI / 180.0f) / 131.0f);
-
-      ret = sensor_register(lower, devno);
-      if (ret < 0)
-        {
-          syslog(LOG_ERR, "MPU6050: Failed to register sensor %d: %d\n",
-                 i, ret);
-          goto errout;
-        }
+  ret = sensor_register(lower, devno);
+  if (ret < 0)
+    {
+      syslog(LOG_ERR, "MPU6050: Failed to register gyro: %d\n", ret);
+      goto errout;
     }
 
   syslog(LOG_INFO, "MPU6050: uORB driver registered successfully\n");
   return OK;
 
 errout:
-  for (i = 0; i < MPU6050_MAX_IDX; i++)
+  if (dev->accel.lower.type != 0)
     {
-      if (dev->priv[i].lower.type != 0)
-        {
-          sensor_unregister(&dev->priv[i].lower, devno);
-        }
+      sensor_unregister(&dev->accel.lower, devno);
+    }
+
+  if (dev->gyro.lower.type != 0)
+    {
+      sensor_unregister(&dev->gyro.lower, devno);
     }
 
   nxmutex_destroy(&dev->base.dev_lock);
