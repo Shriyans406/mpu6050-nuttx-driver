@@ -1,0 +1,49 @@
+================================================================================
+FILE: drivers/sensors/Kconfig
+INSTRUCTION: Add this section (in alphabetical order with other sensors)
+================================================================================
+
+config SENSORS_MPU6050
+  bool "MPU6050/MPU9050 6-axis IMU sensor"
+  default n
+  depends on I2C
+  ---help---
+    Enable support for MPU6050 (or MPU9050 without magnetometer) I2C
+    6-axis inertial measurement unit (IMU) sensor.
+    
+    The MPU6050 is a low-cost MEMS sensor combining 3-axis accelerometer,
+    3-axis gyroscope, and onboard temperature sensor.
+    
+    SPECIFICATIONS:
+    - Accelerometer: ±2/4/8/16g configurable
+    - Gyroscope: ±250/500/1000/2000°/s configurable
+    - Temperature: -40°C to +125°C
+    - I2C address: 0x68 (AD0=0) or 0x69 (AD0=1)
+    - Sample rate: 1 kHz internal, configurable via divider
+    - Data format: 14 bytes (3-axis accel + temp + 3-axis gyro)
+    
+    HARDWARE CONNECTIONS:
+    - Pin 1 (VDD): 3.3V power supply
+    - Pin 2 (GND): Ground
+    - Pin 3 (SCL): I2C clock line (pullup to 3.3V)
+    - Pin 4 (SDA): I2C data line (pullup to 3.3V)
+    - Pin 5 (AD0): GND for address 0x68, or 3.3V for 0x69
+    - Pin 6 (INT): Data ready interrupt (optional)
+    
+    PULL-UP RESISTORS:
+    - 4.7kΩ recommended for both SCL and SDA lines
+    - Required for proper I2C operation
+    
+    APPLICATIONS:
+    - Quadcopter/drone flight control
+    - Robot motion tracking
+    - Gesture recognition
+    - Activity monitoring
+    - Vibration detection
+    - Mobile device orientation
+    - Virtual reality motion sensing
+    
+    This sensor is extensively used in robotics and aerospace applications
+    due to its low cost, small size, and accurate motion measurements.
+
+================================================================================

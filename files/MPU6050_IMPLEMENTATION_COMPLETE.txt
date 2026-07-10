@@ -1,0 +1,153 @@
+================================================================================
+             MPU6050 6-AXIS IMU DRIVER - COMPLETE IMPLEMENTATION GUIDE
+                  Step-by-Step With Exact Instructions
+================================================================================
+
+DIFFICULTY: Medium (more complex than DHT22)
+TIME: 4-5 hours
+LEARNING: Advanced NuttX, sensor calibration, I2C, 6-axis motion sensing
+
+================================================================================
+PART 1: UNDERSTAND MPU6050 SPECIFICATIONS
+================================================================================
+
+What is MPU6050?
+  A 6-axis Inertial Measurement Unit (IMU) combining:
+    - 3-axis accelerometer (motion detection)
+    - 3-axis gyroscope (rotation detection)
+    - Temperature sensor (internal)
+
+Real-world uses:
+  ✓ Quadcopter flight stabilization
+  ✓ Robot motion tracking
+  ✓ Phone orientation detection
+  ✓ Activity monitoring
+  ✓ Gesture recognition
+  ✓ VR motion controllers
+
+Key Specifications:
+  Accel Range: ±2g, ±4g, ±8g, ±16g (selectable)
+  Gyro Range: ±250°/s, ±500°/s, ±1000°/s, ±2000°/s (selectable)
+  Temperature: -40°C to +125°C (internal sensor)
+  I2C Address: 0x68 (default) or 0x69 (AD0 selectable)
+  Data Format: 14 bytes (accel[6] + temp[2] + gyro[6])
+  Sample Rate: Configurable 8 kHz to 1 Hz
+
+Conversion Factors (±2g accel, ±250°/s gyro):
+  Accel: raw_value / 16384.0 = acceleration in g
+  Gyro: raw_value / 131.0 = rotation rate in °/s
+  Temp: (raw_value / 340.0) + 36.53 = temperature in °C
+
+================================================================================
+PART 2: HARDWARE SETUP (BEFORE CODING)
+================================================================================
+
+What You Need:
+  ✓ MPU6050 module (GY-521 board) - ~$5
+  ✓ ESP32-DevKit-C - ~$10
+  ✓ 2× 4.7kΩ resistors
+  ✓ USB cable for ESP32
+  ✓ Breadboard + jumper wires
+
+MPU6050 Wiring:
+  ESP32 3.3V  → MPU6050 VDD
+  ESP32 GND   → MPU6050 GND
+  ESP32 GPIO22 (SCL) → MPU6050 SCL (with 4.7kΩ pullup to 3.3V)
+  ESP32 GPIO21 (SDA) → MPU6050 SDA (with 4.7kΩ pullup to 3.3V)
+  ESP32 GND   → MPU6050 AD0 (sets I2C address to 0x68)
+
+⚠️ CRITICAL: Use 3.3V, NOT 5V (will destroy sensor)
+
+================================================================================
+PART 3: SETUP (15 minutes)
+================================================================================
+
+Clone and create branch:
+  $ cd ~/nuttx-workspace
+  $ git clone https://github.com/YOUR_USERNAME/nuttx.git
+  $ cd nuttx
+  $ git checkout -b feature/mpu6050-driver
+
+================================================================================
+PART 4: ADD FILES (1 hour)
+================================================================================
+
+1. Copy mpu6050.h to: include/nuttx/sensors/mpu6050.h
+2. Copy mpu6050.c to: drivers/sensors/mpu6050.c
+3. Copy esp32_mpu6050.c to: boards/xtensa/esp32/esp32-devkitc-v4/src/
+4. Modify Kconfig (add MPU6050 config section)
+5. Modify Make.defs (add CSRCS += mpu6050.c)
+6. Modify board.h (add function declaration)
+7. Modify esp32_bringup.c (add initialization call)
+8. Modify Makefile (add esp32_mpu6050.c)
+
+See MPU6050_Kconfig_addition.txt for exact changes.
+
+================================================================================
+PART 5: BUILD (1 hour)
+================================================================================
+
+  $ ./tools/configure.sh esp32-devkitc-v4:nsh
+  $ make menuconfig
+  
+  Enable: Device Drivers → Sensor Device Support → MPU6050
+  
+  $ make clean
+  $ make -j4
+
+================================================================================
+PART 6: HARDWARE TESTING (1.5 hours)
+================================================================================
+
+Flash:
+  $ esptool.py --chip esp32 --port /dev/ttyUSB0 \
+    --baud 1500000 write_flash 0x1000 bootloader.bin \
+    0x8000 partition-table.bin 0x10000 nuttx.bin
+
+Test:
+  Connect to serial: screen /dev/ttyUSB0 115200
+  nsh> ls -la /dev/mpu6050
+  nsh> cat /dev/mpu6050 | hexdump -C
+
+Expected:
+  - Device appears at /dev/mpu6050
+  - 14 bytes of binary data on each read
+  - WHO_AM_I test passes (0x68)
+
+================================================================================
+PART 7: COMMIT AND SUBMIT PR (1 hour)
+================================================================================
+
+  $ git add -A
+  
+  $ git commit -m "drivers/sensors: add MPU6050 6-axis IMU driver
+  
+  - Implement complete MPU6050 I2C 6-axis sensor
+  - 3-axis accelerometer + 3-axis gyroscope + temperature
+  - Full I2C support (100kHz, 400kHz)
+  - WHO_AM_I sensor verification
+  - Standard /dev/mpu6050 character device
+  - ESP32 board integration
+  - Example application with data conversion
+  
+  Tested on ESP32-DevKit-C with GY-521 module."
+  
+  $ git push origin feature/mpu6050-driver
+
+Go to GitHub and create PR with title:
+  "drivers/sensors: add MPU6050 6-axis IMU sensor driver"
+
+================================================================================
+SUCCESS! Your MPU6050 driver is submitted! 🎉
+================================================================================
+
+This contribution teaches:
+  ✓ Complex sensor driver architecture
+  ✓ 6-axis IMU data handling
+  ✓ Advanced I2C communication patterns
+  ✓ Calibration and unit conversion
+  ✓ NuttX framework mastery
+
+You're now a professional embedded systems contributor!
+
+================================================================================
